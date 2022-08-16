@@ -4,6 +4,7 @@ import type { AppProps } from 'next/app'
 import LayoutPrimary from '../layouts/LayoutPrimary'
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
+import { getAuth } from "firebase/auth"
 
 const firebaseConfig = {
   apiKey: "AIzaSyC9EP7mMBgcGQEcwLJbvF2KyCUlfnPttV4",
@@ -15,8 +16,9 @@ const firebaseConfig = {
   measurementId: "G-E535N0HSQJ"
 };
 
-const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app);
+const app = initializeApp(firebaseConfig)
+export const db = getFirestore(app)
+
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (

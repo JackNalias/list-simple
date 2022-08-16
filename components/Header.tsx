@@ -1,9 +1,35 @@
 import Link from "next/link";
 import 'bootstrap/dist/css/bootstrap.css'
-import { FC } from "react";
+import { FC, useState } from "react";
 import { Navbar, Container, Nav, Button } from "react-bootstrap";
+import { useRouter } from "next/router";
+import { onAuthStateChanged, getAuth } from "firebase/auth";
 
 const Header: FC = () => {
+  const router = useRouter()
+  const [signedIn, setSignedIn] = useState(false)
+  const auth = getAuth()
+
+  const login = () => {
+    router.push('/login')
+  }
+
+  const signUp = () => {
+    router.push('/sign-up')
+  }
+
+  const signOut = () => {
+    auth.signOut()
+  }
+
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      setSignedIn(true)
+    } else {
+      setSignedIn(false)
+    }
+  });
+
   return (
     <Navbar bg="light" expand="lg">
       <Container>
@@ -21,8 +47,13 @@ const Header: FC = () => {
             </Link>
 
           </Nav>
-          <Button variant="primary">Login</Button>
-          <Button variant="primary" className="ms-4">Sign Up</Button>
+          {!signedIn
+            ? <>
+              <Button variant="primary" onClick={login}>Login</Button>
+              <Button variant="primary" onClick={signUp} className="ms-4">Sign Up</Button>
+            </>
+            : <Button variant="primary" onClick={signOut} className="ms-4">Sign Out</Button>
+          }
 
         </Navbar.Collapse>
       </Container>

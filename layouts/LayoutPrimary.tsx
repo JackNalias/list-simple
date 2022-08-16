@@ -5,7 +5,7 @@ const LayoutPrimary: FC<PropsWithChildren> = ({children}) => {
   return (
     <>
       <Header />
-      <main className="d-flex flex-column container">{children}</main>
+      <main className="d-flex flex-column container flex-grow-1">{children}</main>
     </>
   );
 };
