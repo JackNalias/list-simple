@@ -1,13 +1,26 @@
+import { onAuthStateChanged } from "firebase/auth";
 import { NextPage } from "next";
 import { useEffect, useState } from "react";
-import { InputGroup, Form, Button, Row, Col } from "react-bootstrap";
+import { InputGroup, Form, Button, Row, Col, Alert } from "react-bootstrap";
 import MyListsList from "../../components/MyListsList";
-import { ListModel, GetAllLists, CreateList, DeleteAllListsAndTasks, DeleteSelectedLists } from "../../lib/firebase/ListController";
+import { ListModel, GetAllLists, CreateList, DeleteSelectedLists, DeleteAllListsAndTasksInLists } from "../../lib/firebase/ListController";
 import { auth } from "../../lib/firebase/Setup";
 import firestoreAutoId from "../../lib/firebase/utils/IdGenerator";
 
 const MyListsPage: NextPage = () => {
   const [listsArr, setListsArr] = useState(new Array<ListModel>())
+  const [signedIn, setSignedIn] = useState(true)
+
+  useEffect(() => {
+    onAuthStateChanged(auth, async () => {
+      if (auth.currentUser) {
+        setListsArr(await GetAllLists())
+        setSignedIn(true)
+      } else {
+        setSignedIn(false)
+      }
+    })
+  }, [])
 
   function UpdateListInListsArr(list: ListModel) {
     setListsArr(current =>
@@ -26,13 +39,13 @@ const MyListsPage: NextPage = () => {
     const newList: ListModel = {
       Id: firestoreAutoId(),
       ListName: listNameInput,
-      Selected: false
+      Selected: false,
     }
     setListsArr(current => [...current, newList]);
-    if (auth.currentUser) {
-      await CreateList(newList)
-    }
     updateListNameInput('')
+    if (signedIn) {
+      CreateList(newList)
+    }
   }
 
   const listNameInputOnKeyUp = (e: React.KeyboardEvent) => {
@@ -42,8 +55,10 @@ const MyListsPage: NextPage = () => {
   }
 
   const onDeleteAllLists = async () => {
+    if (signedIn) {
+      DeleteAllListsAndTasksInLists()
+    }
     setListsArr(new Array<ListModel>());
-    DeleteAllListsAndTasks()
   }
 
   const deleteAllSelected = async () => {
@@ -59,42 +74,44 @@ const MyListsPage: NextPage = () => {
       }
     }
     setListsArr(remainingLists)
-    await DeleteSelectedLists(selectedLists)
+    if (signedIn) {
+      DeleteSelectedLists(selectedLists)
+    }
   }
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setListsArr(await GetAllLists())
-    };
-    fetchData()
-  }, [])
-
   return (
-    <div className="d-flex flex-column">
+    <>
+      {!signedIn &&
+        <Alert className="mt-5" variant="danger">You must be signed in to create lists.</Alert>
+      }
+      {signedIn &&
+        <div className="d-flex flex-column">
 
-      <h1 className="my-5 text-center">My Lists</h1>
+        <h1 className="mt-5 mb-1 text-center">My Lists</h1>
 
-      <InputGroup className="mb-3">
-        <Form.Control
-          placeholder="New List..."
-          aria-label="New List Name"
-          value={listNameInput}
-          onChange={(e) => { updateListNameInput(e.target.value) }}
-          onKeyUp={(e) => { listNameInputOnKeyUp(e) }}
-        />
-        <Button variant="primary" onClick={onCreateNew}>
-          Create New
-        </Button>
-      </InputGroup>
+        <InputGroup className="mb-3 mt-5">
+          <Form.Control
+            placeholder="New List..."
+            aria-label="New List Name"
+            value={listNameInput}
+            onChange={(e) => { updateListNameInput(e.target.value) }}
+            onKeyUp={(e) => { listNameInputOnKeyUp(e) }}
+          />
+          <Button variant="primary" onClick={onCreateNew}>
+            Create New
+          </Button>
+        </InputGroup>
 
-      <Row className="mb-3">
-        <Col sm="auto"><Button variant="primary" size="sm" onClick={deleteAllSelected}>Delete Selected</Button></Col>
-        <Col sm="auto"><Button variant="primary" size="sm" onClick={onDeleteAllLists}>Delete All</Button></Col>
-      </Row>
+        <Row className="mb-3">
+          <Col sm="auto"><Button variant="primary" size="sm" onClick={deleteAllSelected}>Delete Selected</Button></Col>
+          <Col sm="auto"><Button variant="primary" size="sm" onClick={onDeleteAllLists}>Delete All</Button></Col>
+        </Row>
 
-      <MyListsList lists={listsArr} updateList={UpdateListInListsArr}></MyListsList>
+        <MyListsList lists={listsArr} updateList={UpdateListInListsArr}></MyListsList>
 
-    </div>
+      </div>
+      }
+    </>
   )
 }
 

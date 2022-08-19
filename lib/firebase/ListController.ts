@@ -1,10 +1,9 @@
 import {
-  collection, deleteDoc, doc, DocumentData, DocumentReference, getDocs, QueryDocumentSnapshot,
-  QuerySnapshot, serverTimestamp, setDoc, SnapshotOptions, Timestamp
+  collection, deleteDoc, doc, DocumentData, getDoc, getDocs, QueryDocumentSnapshot,
+  serverTimestamp, setDoc, SnapshotOptions, Timestamp
 } from "firebase/firestore"
 import { db, auth } from "./Setup"
-import { DeleteAllTasksInLists } from "./TaskController";
-import firestoreAutoId from "./utils/IdGenerator";
+import { DeleteAllTasksInAList, } from "./TaskController";
 
 const listColRef = 'lists'
 
@@ -23,7 +22,7 @@ const listConverter = {
   toFirestore(list: ListModel): DocumentData {
     return {
       CreatedOn: serverTimestamp(),
-      ListName: list.ListName
+      ListName: list.ListName,
     } as ListFields;
   },
   fromFirestore(
@@ -34,19 +33,10 @@ const listConverter = {
     return {
       Id: snapshot.id,
       Selected: false,
-      ListName: data.ListName
+      ListName: data.ListName,
     } as ListModel;
   }
 };
-
-function ConvertQuerySnapshotIntoDocRefArray(querySnapshot: QuerySnapshot<ListModel>) {
-  const docRefs = new Array<DocumentReference<ListModel>>
-  for (let i = 0; i < querySnapshot.docs.length; i++) {
-    const docRef = querySnapshot.docs[i].ref
-    docRefs.push(docRef)
-  }
-  return docRefs
-}
 
 export async function CreateList(list: ListModel) {
   return await setDoc(doc(db, `users/${auth.currentUser?.uid}/lists/${list.Id}`).withConverter(listConverter), list)
@@ -56,36 +46,37 @@ export async function GetAllLists() {
   const querySnapshot = await getDocs(collection(db, `users/${auth.currentUser?.uid}/lists`).withConverter(listConverter))
   const lists = new Array<ListModel>()
   for (let i = 0; i < querySnapshot.docs.length; i++) {
-    const doc = querySnapshot.docs[i]
-    lists.push(doc.data())
+    lists.push(querySnapshot.docs[i].data())
   }
   return lists
 }
 
-// Deletes only list docs
-// To be used after tasks in subcollection are deleted
-async function DeleteAllLists(listDocRefs: Array<DocumentReference<ListModel>>) {
-  const deletePromsies = new Array<Promise<void>>()
-  for (let i = 0; i < listDocRefs.length; i++) {
-    deletePromsies.push(deleteDoc(listDocRefs[i]))
+async function DeleteListsAndTasksInLists(lists: Array<ListModel>) {
+  // Delete all tasks in lists
+  const deleteTasksPromises = new Array<Promise<void>>()
+  for (let i = 0; i < lists.length; i++) {
+    deleteTasksPromises.push(DeleteAllTasksInAList(lists[i].Id))
   }
-  await Promise.all(deletePromsies)
+  await Promise.all(deleteTasksPromises)
+
+  // Delete lists
+  const deleteListsPromises = new Array<Promise<void>>()
+  for (let i = 0; i < lists.length; i++) {
+    deleteListsPromises.push(deleteDoc(doc(db, `users/${auth.currentUser?.uid}/lists/${lists[i].Id}`)))
+  }
+  await Promise.all(deleteListsPromises)
 }
 
-export async function DeleteAllListsAndTasks() {
-  const querySnapshot = await getDocs(collection(db, `users/${auth.currentUser?.uid}/lists`).withConverter(listConverter))
-  const listDocRefs = ConvertQuerySnapshotIntoDocRefArray(querySnapshot)
-  await DeleteAllTasksInLists(listDocRefs)
-  await DeleteAllLists(listDocRefs)
+export async function DeleteAllListsAndTasksInLists() {
+  const lists = await GetAllLists()
+  await DeleteListsAndTasksInLists(lists)
 }
 
 export async function DeleteSelectedLists(lists: Array<ListModel>) {
-  // Get all selected doc refs
-  const listDocRefs = new Array<DocumentReference<ListModel>>()
-  for (let i = 0; i < lists.length; i++) {
-    listDocRefs.push(doc(db, `users/${auth.currentUser?.uid}/lists/${lists[i].Id}`).withConverter(listConverter))
-  }
+  await DeleteListsAndTasksInLists(lists)
+}
 
-  await DeleteAllTasksInLists(listDocRefs)
-  await DeleteAllLists(listDocRefs)
+export async function GetList(listId: string) {
+  const listDoc = await getDoc(doc(db, `users/${auth.currentUser?.uid}/lists/${listId}`).withConverter(listConverter))
+  return listDoc.data()
 }

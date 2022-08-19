@@ -1,8 +1,7 @@
 import {
-  collection, deleteDoc, DocumentData, DocumentReference, getDocs,
-  QueryDocumentSnapshot, QuerySnapshot, serverTimestamp, SnapshotOptions, Timestamp
+  collection, deleteDoc, doc, DocumentData, getDocs,
+  QueryDocumentSnapshot, serverTimestamp, setDoc, SnapshotOptions, Timestamp
 } from "firebase/firestore";
-import { ListModel } from "./ListController";
 import { db, auth } from "./Setup";
 
 const tasksColRef = 'tasks'
@@ -38,25 +37,28 @@ const taskConverter = {
   }
 };
 
-export async function DeleteAllTasksInLists(listDocRefs: Array<DocumentReference<ListModel>>) {
-  // Get tasks
-  const taskSnapshotPromises = new Array<Promise<QuerySnapshot<TaskModel>>>
-  for (let i = 0; i < listDocRefs.length; i++) {
-    const list = listDocRefs[i]
-    taskSnapshotPromises.push(getDocs(collection(db, `users/${auth.currentUser?.uid}/lists/${list.id}/tasks`).withConverter(taskConverter)))
+export async function CreateTask(task: TaskModel, listId: string) {
+  return await setDoc(doc(db, `users/${auth.currentUser?.uid}/lists/${listId}/tasks/${task.Id}`).withConverter(taskConverter), task)
+}
+
+export async function DeleteSelectTasksInAList(listId: string, taskIds: Array<string>) {
+  const promises = new Array<Promise<void>>()
+  for (let i = 0; i < taskIds.length; i++) {
+    promises.push(deleteDoc(doc(db, `users/${auth.currentUser?.uid}/lists/${listId}/tasks/${taskIds[i]}`)))
   }
+  await Promise.all(promises)
+}
 
-  const taskSnapshots = await Promise.all(taskSnapshotPromises)
+export async function DeleteAllTasksInAList(listId: string) {
+  const querySnapshot = await getDocs(collection(db, `users/${auth.currentUser?.uid}/lists/${listId}/tasks`))
+  DeleteSelectTasksInAList(listId, querySnapshot.docs.map(x => x.id))
+}
 
-  // Delete tasks
-  const deleteTaskPromsies = new Array<Promise<void>>()
-  for (let i = 0; i < taskSnapshots.length; i++) {
-    const taskSnapshot = taskSnapshots[i]
-    for (let j = 0; j < taskSnapshot.docs.length; j++) {
-      const taskRef = taskSnapshot.docs[j].ref
-      deleteTaskPromsies.push(deleteDoc(taskRef))
-    }
+export async function GetAllTasks(listId: string) {
+  const tasks = new Array<TaskModel>()
+  const querySnapshot = await getDocs(collection(db, `users/${auth.currentUser?.uid}/lists/${listId}/tasks`).withConverter(taskConverter))
+  for (let i = 0; i < querySnapshot.docs.length; i++) {
+    tasks.push(querySnapshot.docs[i].data())
   }
-
-  await Promise.all(deleteTaskPromsies)
+  return tasks
 }

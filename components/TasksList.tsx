@@ -1,6 +1,6 @@
 import { FC } from "react"
 import { ListGroup, Form } from "react-bootstrap"
-import { TaskModel } from "../firebase/ListController"
+import { TaskModel } from "../lib/firebase/TaskController"
 
 const TasksList: FC<{tasks: Array<TaskModel>, updateTask: (task: TaskModel) => void}> = (props) => {
 
@@ -17,7 +17,7 @@ const TasksList: FC<{tasks: Array<TaskModel>, updateTask: (task: TaskModel) => v
     <ListGroup.Item className="d-flex justify-content-between" key={index}>
       <div className="d-flex align-items-center">
         <Form.Check role={'button'} checked={task.Selected} onChange={(e) => { toggleSelect(e, task) }} />
-        <span className="ms-4">{task.Name}</span>
+        <span className="ms-4">{task.TaskName}</span>
       </div>
     </ListGroup.Item>
   )

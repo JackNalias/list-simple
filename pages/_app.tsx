@@ -4,7 +4,6 @@ import type { AppProps } from 'next/app'
 import LayoutPrimary from '../layouts/LayoutPrimary'
 
 function MyApp({ Component, pageProps }: AppProps) {
-
   return (
     <LayoutPrimary>
       <Component {...pageProps} />
