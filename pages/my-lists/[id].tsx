@@ -1,37 +1,8 @@
 import { NextPage } from "next"
-import React, { FC, useState } from "react"
-import { InputGroup, Form, Button, ListGroup, Col, Row } from "react-bootstrap"
-
-type TaskModel = {
-  Id: string,
-  Name: string,
-  Selected: boolean
-}
-
-const TasksList: FC<{tasks: Array<TaskModel>, updateTask: (task: TaskModel) => void}> = (props) => {
-
-  const toggleSelect = (e: React.ChangeEvent, task: TaskModel) => {
-    if (task.Selected) {
-      task.Selected = false
-    } else {
-      task.Selected = true
-    }
-    props.updateTask(task)
-  }
-
-  const tasks = props.tasks.map((task, index) =>
-    <ListGroup.Item className="d-flex justify-content-between" key={index}>
-      <div className="d-flex align-items-center">
-        <Form.Check role={'button'} checked={task.Selected} onChange={(e) => { toggleSelect(e, task) }} />
-        <span className="ms-4">{task.Name}</span>
-      </div>
-    </ListGroup.Item>
-  )
-
-  return (
-    <ListGroup className="mt-2">{tasks}</ListGroup>
-  )
-}
+import React, { useState } from "react"
+import { InputGroup, Form, Button, Col, Row } from "react-bootstrap"
+import TasksList from "../../components/TasksList"
+import { TaskModel } from "../../lib/firebase/TaskController"
 
 const MyListsId: NextPage = () => {
 
@@ -42,7 +13,7 @@ const MyListsId: NextPage = () => {
     if (e.key === 'Enter' && taskInputValue !== '') {
       setTasksArr(current => [...current, {
         Id: '55',
-        Name: taskInputValue,
+        TaskName: taskInputValue,
         Selected: false
       }]);
       setTaskInputValue('')
@@ -52,7 +23,7 @@ const MyListsId: NextPage = () => {
   const createNew = () => {
     setTasksArr(current => [...current, {
       Id: '3',
-      Name: taskInputValue,
+      TaskName: taskInputValue,
       Selected: false
     } as TaskModel
     ]);

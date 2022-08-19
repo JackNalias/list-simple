@@ -1,4 +1,4 @@
-import { ChangeEvent, FC, FormEvent, MouseEvent, MouseEventHandler, useState } from "react";
+import { ChangeEvent, FC, MouseEvent, useState } from "react";
 
 type InputPrimaryProps = {
   PlaceholderText: string,

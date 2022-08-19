@@ -1,6 +1,5 @@
 import type { NextPage } from 'next'
 import Head from 'next/head'
-import Header from '../components/Header'
 
 const Home: NextPage = () => {
   return (
@@ -12,7 +11,8 @@ const Home: NextPage = () => {
       </Head>
 
       
-      hello
+      <h1 className='mt-5 text-center'>List Simple</h1>
+      <div className='text-center'>A simple online tool to help you keep track of the important things in your life.</div>
 
     </div>
   )

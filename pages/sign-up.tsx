@@ -3,6 +3,7 @@ import { NextPage } from "next";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { Alert, Button, Form } from "react-bootstrap";
+import { CreateNewAccount } from "../lib/firebase/AccountController";
 
 const LoginPage: NextPage = () => {
 
@@ -36,15 +37,16 @@ const LoginPage: NextPage = () => {
     }
 
     createUserWithEmailAndPassword(getAuth(), emailInput, passwordInput)
-      .then((userCredential) => {
+      .then(async () => {
+        await CreateNewAccount()
         router.push('/')
       })
       .catch((error: AuthError) => {
-        console.log(error)   
         if (error.code === 'auth/email-already-in-use') {
           setAlertText('Unable to create account. An account with that email already exists.')
         }
-      });
+      }
+    )
   }
 
   return (

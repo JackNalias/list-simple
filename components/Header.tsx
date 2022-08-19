@@ -3,12 +3,12 @@ import 'bootstrap/dist/css/bootstrap.css'
 import { FC, useState } from "react";
 import { Navbar, Container, Nav, Button } from "react-bootstrap";
 import { useRouter } from "next/router";
-import { onAuthStateChanged, getAuth } from "firebase/auth";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "../lib/firebase/Setup";
 
 const Header: FC = () => {
   const router = useRouter()
   const [signedIn, setSignedIn] = useState(false)
-  const auth = getAuth()
 
   const login = () => {
     router.push('/login')
@@ -34,7 +34,7 @@ const Header: FC = () => {
     <Navbar bg="light" expand="lg">
       <Container>
         <Link href="/">
-          <a className="navbar-brand">My Lists</a>
+          <a className="navbar-brand">List Simple</a>
         </Link>
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
