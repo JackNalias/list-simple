@@ -1,5 +1,6 @@
 import { onAuthStateChanged } from "firebase/auth";
 import { NextPage } from "next";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { InputGroup, Form, Button, Row, Col, Alert } from "react-bootstrap";
 import MyListsList from "../../components/MyListsList";
@@ -82,34 +83,40 @@ const MyListsPage: NextPage = () => {
   return (
     <>
       {!signedIn &&
-        <Alert className="mt-5" variant="danger">You must be signed in to create lists.</Alert>
+        <Alert className="mt-5 d-flex" variant="danger">
+          <span className="me-3">You must be signed in to create lists.</span>
+          <div className="d-flex">
+            <div className="me-3"><Link href={'/login'}>Login</Link></div>
+            <Link href={'/sign-up'}>Sign Up</Link>
+          </div>
+        </Alert>
       }
       {signedIn &&
         <div className="d-flex flex-column">
 
-        <h1 className="mt-5 mb-1 text-center">My Lists</h1>
+          <h1 className="mt-5 mb-1 text-center">My Lists</h1>
 
-        <InputGroup className="mb-3 mt-5">
-          <Form.Control
-            placeholder="New List..."
-            aria-label="New List Name"
-            value={listNameInput}
-            onChange={(e) => { updateListNameInput(e.target.value) }}
-            onKeyUp={(e) => { listNameInputOnKeyUp(e) }}
-          />
-          <Button variant="primary" onClick={onCreateNew}>
-            Create New
-          </Button>
-        </InputGroup>
+          <InputGroup className="mb-3 mt-5">
+            <Form.Control
+              placeholder="New List..."
+              aria-label="New List Name"
+              value={listNameInput}
+              onChange={(e) => { updateListNameInput(e.target.value) }}
+              onKeyUp={(e) => { listNameInputOnKeyUp(e) }}
+            />
+            <Button variant="primary" onClick={onCreateNew}>
+              Create New
+            </Button>
+          </InputGroup>
 
-        <Row className="mb-3">
-          <Col sm="auto"><Button variant="primary" size="sm" onClick={deleteAllSelected}>Delete Selected</Button></Col>
-          <Col sm="auto"><Button variant="primary" size="sm" onClick={onDeleteAllLists}>Delete All</Button></Col>
-        </Row>
+          <Row className="mb-3">
+            <Col sm="auto"><Button variant="primary" size="sm" onClick={deleteAllSelected}>Delete Selected</Button></Col>
+            <Col sm="auto"><Button variant="primary" size="sm" onClick={onDeleteAllLists}>Delete All</Button></Col>
+          </Row>
 
-        <MyListsList lists={listsArr} updateList={UpdateListInListsArr}></MyListsList>
+          <MyListsList lists={listsArr} updateList={UpdateListInListsArr}></MyListsList>
 
-      </div>
+        </div>
       }
     </>
   )

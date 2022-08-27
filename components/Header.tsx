@@ -48,16 +48,16 @@ const Header: FC = () => {
 
           </Nav>
           {!signedIn
-            ? <>
-              <Button variant="primary" onClick={login}>Login</Button>
-              <Button variant="primary" onClick={signUp} className="ms-4">Sign Up</Button>
-            </>
-            : <Button variant="primary" onClick={signOut} className="ms-4">Sign Out</Button>
+            ? <div className="d-flex">
+                <Button variant="primary" onClick={login}>Login</Button>
+                <Button variant="primary" onClick={signUp} className="ms-4">Sign Up</Button>
+              </div>
+            : <Button variant="primary" onClick={signOut} className="">Sign Out</Button>
           }
 
         </Navbar.Collapse>
       </Container>
-    </Navbar>
+    </Navbar >
   );
 };
 
